@@ -89,6 +89,7 @@ def clear_tempfiles(name="wrap_moveit_param_"):
       os.remove(fn)
 
 def roscpp_initialize(args, robot_name="", use_sim=False):
+    get_robot_semantic()
     if len(args) > 1:
       # remove __name:= argument
       #args2 = [a for a in args if not a.startswith("__name:=")]
