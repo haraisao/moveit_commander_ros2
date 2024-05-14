@@ -41,7 +41,7 @@
 #include <moveit/py_bindings_tools/gil_releaser.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
-#if 0
+#ifdef ROS_HUMBLE
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
 #include <moveit/trajectory_processing/iterative_spline_parameterization.h>
 #endif
@@ -595,7 +595,7 @@ public:
         GILReleaser gr;
         robot_trajectory::RobotTrajectory traj_obj(getRobotModel(), getName());
         traj_obj.setRobotTrajectoryMsg(ref_state_obj, traj_msg);
-#if 0
+#ifdef ROS_HUMBLE
         // Do the actual retiming
         if (algorithm == "iterative_time_parameterization")
         {
