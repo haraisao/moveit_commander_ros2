@@ -154,7 +154,7 @@ class RobotCommander(object):
     def __init__(self, robot_description="robot_description", ns=""):
         self._robot_description = robot_description
         self._ns = ns
-        self._r = _moveit_robot_interface.RobotInterface(robot_description, ns)
+        self._r = _moveit_robot_interface.RobotInterface(robot_description)
         self._groups = {}
         self._joint_owner_groups = {}
 
