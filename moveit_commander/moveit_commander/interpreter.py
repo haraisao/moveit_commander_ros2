@@ -45,7 +45,9 @@ from moveit_commander import (
 from geometry_msgs.msg import Pose, PoseStamped
 #import tf
 import numpy as np
-import quaternion
+#import quaternion
+from .quaternion import euler_to_quaternion, quaternion_to_euler
+
 import re
 import time
 import os.path
@@ -678,12 +680,14 @@ class MoveGroupCommandInterpreter(object):
                     p.position.y = float(clist[2])
                     p.position.z = float(clist[3])
                     #q = tf.transformations.quaternion_from_euler(
-                    #    float(clist[4]), float(clist[5]), float(clist[6])
-                    #)
-                    #p.orientation.x = q[0]
-                    #p.orientation.y = q[1]
-                    #p.orientation.z = q[2]
-                    #p.orientation.w = q[3]
+                    q = euler_to_quaternion(
+                        float(clist[4]), float(clist[5]), float(clist[6])
+                    )
+                    p.orientation.x = q[0]
+                    p.orientation.y = q[1]
+                    p.orientation.z = q[2]
+                    p.orientation.w = q[3]
+                    '''
                     q = quaternion.from_euler_angle(
                         float(clist[4]), float(clist[5]), float(clist[6])
                     )
@@ -691,6 +695,7 @@ class MoveGroupCommandInterpreter(object):
                     p.orientation.y = q.y
                     p.orientation.z = q.z
                     p.orientation.w = q.z
+                    '''
                     if approx:
                         g.set_joint_value_target(p, True)
                     else:

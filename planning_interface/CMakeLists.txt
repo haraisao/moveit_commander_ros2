@@ -41,8 +41,9 @@ find_package(rclpy REQUIRED)
 #set(PYTHON_VERSION_MAJOR 3)
 #set(PYTHON_VERSION_MINOR 10)
 
-find_package(PythonInterp REQUIRED)
-find_package(PythonLibs "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" REQUIRED)
+#find_package(PythonInterp REQUIRED)
+#find_package(PythonLibs "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" REQUIRED)
+find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
 
 find_package(Eigen3 REQUIRED)
 find_package(eigenpy REQUIRED)
@@ -86,6 +87,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS})
 include_directories(${PYTHON_INCLUDE_DIR})
+include_directories(${Python3_NumPy_INCLUDE_DIRS})
 
 add_subdirectory(py_bindings_tools)
 add_subdirectory(common_planning_interface_objects)

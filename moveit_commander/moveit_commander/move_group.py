@@ -52,7 +52,8 @@ import rclpy
 import rclpy.clock
 #import tf
 import numpy
-import quaternion
+#import quaternion
+from .quaternion import euler_to_quaternion, quaternion_to_euler
 from moveit_ros_planning_interface import _moveit_move_group_interface
 from .exception import MoveItCommanderException
 import moveit_commander.conversions as conversions
@@ -383,7 +384,8 @@ class MoveGroupCommander(object):
             # if we are updating a rotation axis however, we convert the orientation to RPY
             if axis > 2:
                 #(r, p, y) = tf.transformations.euler_from_quaternion(pose[3:])
-                (r, p, y) = quaternion.as_euler_angles(quaternion.from_float_array(pose[3:]))
+                #(r, p, y) = quaternion.as_euler_angles(quaternion.from_float_array(pose[3:]))
+                (r, p, y) = quaternion_to_euler(*pose[3:])
                 pose = [pose[0], pose[1], pose[2], r, p, y]
             if axis >= 0 and axis < 6:
                 pose[axis] = pose[axis] + value

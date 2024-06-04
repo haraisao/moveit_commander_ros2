@@ -46,8 +46,7 @@ import rclpy
 import rclpy.clock
 import rclpy.serialization
 import numpy as np
-import quaternion
-
+from .quaternion import euler_to_quaternion, quaternion_to_euler
 #import tf2
 
 def msg_to_string(msg):
@@ -90,10 +89,14 @@ def list_to_pose(pose_list):
         #q = tf.transformations.quaternion_from_euler(
         #    pose_list[3], pose_list[4], pose_list[5]
         #)
-        #pose_msg.orientation.x = q[0]
-        #pose_msg.orientation.y = q[1]
-        #pose_msg.orientation.z = q[2]
-        #pose_msg.orientation.w = q[3]
+
+        q = euler_to_quaternion( pose_list[3], pose_list[4], pose_list[5] )
+
+        pose_msg.orientation.x = q[0]
+        pose_msg.orientation.y = q[1]
+        pose_msg.orientation.z = q[2]
+        pose_msg.orientation.w = q[3]
+        '''
         q = quaternion.from_euler_angles(
             pose_list[3], pose_list[4], pose_list[5]
         )
@@ -101,6 +104,7 @@ def list_to_pose(pose_list):
         pose_msg.orientation.y = q.y
         pose_msg.orientation.z = q.z
         pose_msg.orientation.w = q.w
+        '''
     else:
         raise MoveItCommanderException(
             "Expected either 6 or 7 elements in list: (x,y,z,r,p,y) or (x,y,z,qx,qy,qz,qw)"
