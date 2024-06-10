@@ -18,6 +18,9 @@ def euler_to_quaternion(roll, pitch, yaw):
     return [qx, qy, qz, qw]
 
 def quaternion_to_euler(qx, qy, qz, qw):
+    n = np.linalg.norm([qx, qy, qz, qw])
+    qx, qy, qz, qw = np.array([qx, qy, qz, qw])/n
+
     sinr_cosp = 2.0 * (qw * qx + qy * qz)
     cosr_cosp = 1.0 - 2.0 * (qx * qx + qy * qy)
     roll = np.arctan2(sinr_cosp, cosr_cosp)
