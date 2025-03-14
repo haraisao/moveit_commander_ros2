@@ -39,7 +39,7 @@ import glob
 import subprocess
 from ament_index_python.packages import get_package_share_directory
 
-from moveit_ros_planning_interface import _moveit_roscpp_initializer
+from moveit_ros_planning_interface_py import _moveit_roscpp_initializer
 
 def load_file(package_name, file_path):
     package_path = get_package_share_directory(package_name)

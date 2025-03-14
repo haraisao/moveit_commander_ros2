@@ -54,7 +54,7 @@ import rclpy.clock
 import numpy
 #import quaternion
 from .quaternion import euler_to_quaternion, quaternion_to_euler
-from moveit_ros_planning_interface import _moveit_move_group_interface
+from moveit_ros_planning_interface_py import _moveit_move_group_interface
 from .exception import MoveItCommanderException
 import moveit_commander.conversions as conversions
 from moveit_commander.roscpp_initializer import roscpp_shutdown
