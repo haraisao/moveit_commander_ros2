@@ -1,9 +1,5 @@
 set(MOVEIT_LIB_NAME moveit_planning_scene_interface)
 
-#add_library(${MOVEIT_LIB_NAME} SHARED src/planning_scene_interface.cpp)
-#set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-#ament_target_dependencies(${MOVEIT_LIB_NAME} moveit_msgs moveit_core moveit_ros_move_group)
-
 # TODO(JafarAbdi): Support python wrapper
 add_library(${MOVEIT_LIB_NAME}_python SHARED src/wrap_python_planning_scene_interface.cpp)
 set_target_properties(${MOVEIT_LIB_NAME}_python PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
@@ -28,5 +24,3 @@ install(TARGETS ${MOVEIT_LIB_NAME}_python
   #DESTINATION bin
   DESTINATION ${PYTHON_INSTALL_DIR}/${PROJECT_NAME}
   )
-
-#install(DIRECTORY include/ DESTINATION include)

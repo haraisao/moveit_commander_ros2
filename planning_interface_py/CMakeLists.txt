@@ -39,11 +39,6 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(rclpy REQUIRED)
 
-#set(PYTHON_VERSION_MAJOR 3)
-#set(PYTHON_VERSION_MINOR 10)
-
-#find_package(PythonInterp REQUIRED)
-#find_package(PythonLibs "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" REQUIRED)
 find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
 
 find_package(Eigen3 REQUIRED)
@@ -52,19 +47,13 @@ find_package(eigenpy REQUIRED)
 # Finds Boost Components
 include(ConfigExtras.cmake)
 
-ament_python_install_package(moveit_ros_planning_interface)
+ament_python_install_package(moveit_ros_planning_interface_py)
 
 set(THIS_PACKAGE_INCLUDE_DIRS
   py_bindings_tools/include
-  #common_planning_interface_objects/include
-  #planning_scene_interface/include
-  #move_group_interface/include
 )
 
 set(THIS_PACKAGE_LIBRARIES
-	#moveit_common_planning_interface_objects
-	#moveit_planning_scene_interface
-	#moveit_move_group_interface
   moveit_py_bindings_tools
   moveit_py_bindings_tools_python
 )
@@ -92,11 +81,9 @@ include_directories(${PYTHON_INCLUDE_DIR})
 include_directories(${Python3_NumPy_INCLUDE_DIRS})
 
 add_subdirectory(py_bindings_tools)
-#add_subdirectory(common_planning_interface_objects)
 add_subdirectory(planning_scene_interface)
 add_subdirectory(move_group_interface)
 add_subdirectory(robot_interface)
-# add_subdirectory(test)
 
 #############
 ## TESTING ##
