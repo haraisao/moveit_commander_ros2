@@ -550,6 +550,7 @@ public:
     return pick(object, std::move(grasps), plan_only).val;
   }
 #endif
+
   void setPathConstraintsFromMsg(const py_bindings_tools::ByteString& constraints_str)
   {
     moveit_msgs::msg::Constraints constraints_msg;
@@ -686,6 +687,7 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("move", &MoveGroupInterfaceWrapper::movePython);
   move_group_interface_class.def("execute", &MoveGroupInterfaceWrapper::executePython);
   move_group_interface_class.def("async_execute", &MoveGroupInterfaceWrapper::asyncExecutePython);
+
 #if 0
   moveit::core::MoveItErrorCode (MoveGroupInterfaceWrapper::*pick_1)(const std::string&, bool) =
       &MoveGroupInterfaceWrapper::pick;
@@ -698,6 +700,7 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("place_locations_list", &MoveGroupInterfaceWrapper::placeLocations);
   move_group_interface_class.def("place", &MoveGroupInterfaceWrapper::placeAnywhere);
 #endif
+
   move_group_interface_class.def("stop", &MoveGroupInterfaceWrapper::stop);
 
   move_group_interface_class.def("get_name", &MoveGroupInterfaceWrapper::getNameCStr);

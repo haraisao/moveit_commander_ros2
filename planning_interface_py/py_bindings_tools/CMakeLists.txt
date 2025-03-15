@@ -16,11 +16,6 @@ install(TARGETS ${MOVEIT_LIB_NAME}
 )
 
 add_library(${MOVEIT_LIB_NAME}_python SHARED src/wrap_python_roscpp_initializer.cpp)
-ament_target_dependencies(${MOVEIT_LIB_NAME}_python
-  rclcpp
-  moveit_ros_planning_interface
-)
-
 target_link_libraries(${MOVEIT_LIB_NAME}_python ${MOVEIT_LIB_NAME} ${PYTHON_LIBRARIES} ${Boost_LIBRARIES})
 set_target_properties(${MOVEIT_LIB_NAME}_python PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
 set_target_properties(${MOVEIT_LIB_NAME}_python PROPERTIES OUTPUT_NAME _moveit_roscpp_initializer PREFIX "")

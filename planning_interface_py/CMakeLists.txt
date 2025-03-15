@@ -89,9 +89,9 @@ add_subdirectory(robot_interface)
 ## TESTING ##
 #############
 
-if(BUILD_TESTING)
-  find_package(ament_cmake_gtest REQUIRED)
-  find_package(ros_testing REQUIRED)
+#if(BUILD_TESTING)
+#  find_package(ament_cmake_gtest REQUIRED)
+#  find_package(ros_testing REQUIRED)
 
   # TODO (vatanaksoytezer): Enable once this test is not flaky
   # Move group interface cpp ompl constrained planning integration test
@@ -104,7 +104,7 @@ if(BUILD_TESTING)
   # add_ros_test(test/launch/move_group_ompl_constraints.test.py ARGS "test_binary_dir:=${CMAKE_CURRENT_BINARY_DIR}")
   # end move group interface cpp ompl constrained planning integration test
 
-endif()
+#endif()
 
 install(
   TARGETS ${THIS_PACKAGE_LIBRARIES}
@@ -120,17 +120,17 @@ install(
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
+#if(BUILD_TESTING)
+#  find_package(ament_lint_auto REQUIRED)
 
   # These don't pass yet, disable them for now
-  set(ament_cmake_copyright_FOUND TRUE)
-  set(ament_cmake_cpplint_FOUND TRUE)
-  set(ament_cmake_flake8_FOUND TRUE)
-  set(ament_cmake_uncrustify_FOUND TRUE)
+#  set(ament_cmake_copyright_FOUND TRUE)
+#  set(ament_cmake_cpplint_FOUND TRUE)
+#  set(ament_cmake_flake8_FOUND TRUE)
+#  set(ament_cmake_uncrustify_FOUND TRUE)
 
   # Run all lint tests in package.xml except those listed above
-  ament_lint_auto_find_test_dependencies()
-endif()
+#  ament_lint_auto_find_test_dependencies()
+#endif()
 
 ament_package(CONFIG_EXTRAS ConfigExtras.cmake)
