@@ -788,6 +788,7 @@ class MoveGroupCommander(object):
         velocity_scaling_factor=1.0,
         acceleration_scaling_factor=1.0,
         algorithm="iterative_time_parameterization",
+        resample_dt=0.1,
     ):
         ser_ref_state_in = conversions.msg_to_string(ref_state_in)
         ser_traj_in = conversions.msg_to_string(traj_in)
@@ -797,6 +798,7 @@ class MoveGroupCommander(object):
             velocity_scaling_factor,
             acceleration_scaling_factor,
             algorithm,
+            resample_dt,
         )
         #traj_out = RobotTrajectory()
         #traj_out.deserialize(ser_traj_out)

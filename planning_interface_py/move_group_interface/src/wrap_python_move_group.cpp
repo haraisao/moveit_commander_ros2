@@ -580,7 +580,7 @@ public:
   py_bindings_tools::ByteString retimeTrajectory(const py_bindings_tools::ByteString& ref_state_str,
                                                  const py_bindings_tools::ByteString& traj_str,
                                                  double velocity_scaling_factor, double acceleration_scaling_factor,
-                                                 const std::string& algorithm)
+                                                 const std::string& algorithm, double resample_dt)
   {
     // Convert reference state message to object
     moveit_msgs::msg::RobotState ref_state_msg;
@@ -612,13 +612,13 @@ public:
 #endif
        	if (algorithm == "time_optimal_trajectory_generation")
         {
-          trajectory_processing::TimeOptimalTrajectoryGeneration time_param;
+          trajectory_processing::TimeOptimalTrajectoryGeneration time_param=trajectory_processing::TimeOptimalTrajectoryGeneration(0.1, resample_dt);
           time_param.computeTimeStamps(traj_obj, velocity_scaling_factor, acceleration_scaling_factor);
         }
         else
         {
           //ROS_ERROR_STREAM_NAMED("move_group_py", "Unknown time parameterization algorithm: " << algorithm);
-          fprintf(stderr, "move_group_py", "Unknown time parameterization algorithm: %s\n", algorithm.c_str());
+          fprintf(stderr, "move_group_py:Unknown time parameterization algorithm: %s\n", algorithm.c_str());
           algorithm_found = false;
           traj_msg = moveit_msgs::msg::RobotTrajectory();
         }
