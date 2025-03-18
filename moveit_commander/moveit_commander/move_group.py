@@ -58,6 +58,7 @@ from moveit_ros_planning_interface_py import _moveit_move_group_interface
 from .exception import MoveItCommanderException
 import moveit_commander.conversions as conversions
 from moveit_commander.roscpp_initializer import roscpp_shutdown
+import numpy as np
 
 
 class MoveGroupCommander(object):
@@ -131,9 +132,12 @@ class MoveGroupCommander(object):
         """Get the name of the frame where all planning is performed"""
         return self._g.get_planning_frame()
 
-    def get_current_joint_values(self):
+    def get_current_joint_values(self, deg=False):
         """Get the current configuration of the group as a list (these are values published on /joint_states)"""
-        return self._g.get_current_joint_values()
+        if deg:
+            return [np.rad2deg(x) for x in self._g.get_current_joint_values()] 
+        else:    
+            return self._g.get_current_joint_values()
 
     def get_current_pose(self, end_effector_link=""):
         """Get the current pose of the end-effector of the group. Throws an exception if there is not end-effector."""
@@ -146,12 +150,19 @@ class MoveGroupCommander(object):
                 "There is no end effector to get the pose of"
             )
 
-    def get_current_rpy(self, end_effector_link=""):
+    def get_current_rpy(self, end_effector_link="", deg=False):
         """Get a list of 3 elements defining the [roll, pitch, yaw] of the end-effector. Throws an exception if there is not end-effector."""
         if len(end_effector_link) > 0 or self.has_end_effector_link():
-            return self._g.get_current_rpy(end_effector_link)
+            if deg:
+                return [np.rad2deg(x) for x in self._g.get_current_rpy(end_effector_link)]
+            else:
+                return self._g.get_current_rpy(end_effector_link)
         else:
             raise MoveItCommanderException("There is no end effector to get the rpy of")
+
+    def get_currentpos(self, end_effector_link=""):
+        pos_ = self.get_current_pose(end_effector_link).pose.position
+        return [pos_.x, pos_.y, pos_z]
 
     def get_random_joint_values(self):
         return self._g.get_random_joint_values()
@@ -206,10 +217,13 @@ class MoveGroupCommander(object):
         s = conversions.msg_from_string(s, c_str)
         return s
 
-    def get_joint_value_target(self):
-        return self._g.get_joint_value_target()
+    def get_joint_value_target(self, deg):
+        if deg:
+            return [np.rad2deg(x) for x in self._g.get_joint_value_target() ]
+        else:
+            return self._g.get_joint_value_target()
 
-    def set_joint_value_target(self, arg1, arg2=None, arg3=None):
+    def set_joint_value_target(self, arg1, arg2=None, arg3=None, deg=False):
         """
         Specify a target joint configuration for the group.
         - if the type of arg1 is one of the following: dict, list, JointState message, then no other arguments should be provided.
@@ -288,6 +302,8 @@ class MoveGroupCommander(object):
         elif hasattr(arg1, "__iter__"):
             if arg2 is not None or arg3 is not None:
                 raise MoveItCommanderException("Too many arguments specified")
+            if deg :
+                arg1 = [np.deg2rad(x) for x in arg1]
             if not self._g.set_joint_value_target(arg1):
                 raise MoveItCommanderException(
                     "Error setting joint target. Is the target within bounds?"
@@ -298,9 +314,11 @@ class MoveGroupCommander(object):
                 "Unsupported argument of type %s" % type(arg1)
             )
 
-    def set_rpy_target(self, rpy, end_effector_link=""):
+    def set_rpy_target(self, rpy, end_effector_link="", deg=False):
         """Specify a target orientation for the end-effector. Any position of the end-effector is acceptable."""
         if len(end_effector_link) > 0 or self.has_end_effector_link():
+            if deg:
+                rpy = [np.deg2rad(x) for x in rpy]
             if len(rpy) == 3:
                 if not self._g.set_rpy_target(
                     rpy[0], rpy[1], rpy[2], end_effector_link
@@ -787,7 +805,7 @@ class MoveGroupCommander(object):
         traj_in,
         velocity_scaling_factor=1.0,
         acceleration_scaling_factor=1.0,
-        algorithm="iterative_time_parameterization",
+        algorithm="time_optimal_trajectory_generation",
         resample_dt=0.1,
     ):
         ser_ref_state_in = conversions.msg_to_string(ref_state_in)

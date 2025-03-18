@@ -38,6 +38,7 @@ import yaml
 import glob
 import subprocess
 from ament_index_python.packages import get_package_share_directory
+import sys
 
 from moveit_ros_planning_interface_py import _moveit_roscpp_initializer
 
@@ -88,7 +89,7 @@ def clear_tempfiles(name="wrap_moveit_param_"):
     for fn in flist:
       os.remove(fn)
 
-def roscpp_initialize(args, robot_name="", use_sim=False):
+def roscpp_initialize(args=sys.argv, robot_name="", use_sim=False):
     get_robot_semantic()
     if len(args) > 1:
       # remove __name:= argument
@@ -101,11 +102,11 @@ def roscpp_initialize(args, robot_name="", use_sim=False):
           else:
             args2.append(a)
     else:
-     args2=["--ros-args", "-p", "use_sim_time:="+str(use_sim)] + gen_srdf_param()
-     if robot_name:
+      args2=["--ros-args", "-p", "use_sim_time:="+str(use_sim)] + gen_srdf_param()
+      if robot_name:
          args2 += gen_kinematics_param(robot_name)
 
-     args2 = [a for a in args2 if a]
+      args2 = [a for a in args2 if a]
     _moveit_roscpp_initializer.roscpp_init("move_group_commander_wrappers", args2)
 
 def roscpp_shutdown():
