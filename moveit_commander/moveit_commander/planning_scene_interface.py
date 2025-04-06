@@ -32,17 +32,16 @@
 #
 # Author: Ioan Sucan, Felix Messmer
 
-#import rospy
 import rclpy
-#from rosgraph.names import ns_join
+from rclpy.node import Node
 from . import conversions
 
 from moveit_msgs.msg import PlanningScene, CollisionObject, AttachedCollisionObject
 from moveit_ros_planning_interface_py import _moveit_planning_scene_interface
-from geometry_msgs.msg import Pose, Point
+from geometry_msgs.msg import Pose, Point, PoseStamped
 from shape_msgs.msg import SolidPrimitive, Plane, Mesh, MeshTriangle
 from .exception import MoveItCommanderException
-#from moveit_msgs.srv import ApplyPlanningScene, ApplyPlanningSceneRequest
+from moveit_msgs.srv import ApplyPlanningScene
 
 try:
     from pyassimp import pyassimp
@@ -56,6 +55,12 @@ except:
             "Failed to import pyassimp, see https://github.com/ros-planning/moveit/issues/86 for more info"
         )
 
+def ns_join(ns, name):
+    if ns:
+        return '/'.join([ns, name])
+
+    else:
+        return name
 
 class PlanningSceneInterface(object):
     """
@@ -65,34 +70,41 @@ class PlanningSceneInterface(object):
     See wrap_python_planning_scene_interface.cpp for the wrapped methods.
     """
 
-    def __init__(self, ns="", synchronous=False, service_timeout=5.0):
+    def __init__(self, ns="", node=None,synchronous=False, service_timeout=5.0):
         """Create a planning scene interface; it uses both C++ wrapped methods and scene manipulation topics."""
+        if node is None: self.node = Node("planning_scene_interface")
+        else: self.node = node
         self._psi = _moveit_planning_scene_interface.PlanningSceneInterface(ns)
 
-        #self._pub_co = rospy.Publisher(
-        #    ns_join(ns, "collision_object"), CollisionObject, queue_size=100
-        #)
-        #self._pub_aco = rospy.Publisher(
-        #    ns_join(ns, "attached_collision_object"),
-        #    AttachedCollisionObject,
-        #    queue_size=100,
-        #)
+        self._pub_co = self.node.create_publisher(CollisionObject, ns_join(ns, "collision_object"), 100)
+        self._pub_aco = self.node.create_publisher(AttachedCollisionObject, ns_join(ns, "attached_collision_object"), 100)
+
         self.__synchronous = synchronous
-        #if self.__synchronous:
-        #    self._apply_planning_scene_diff = rospy.ServiceProxy(
-        #        ns_join(ns, "apply_planning_scene"), ApplyPlanningScene
-        #    )
-        #    self._apply_planning_scene_diff.wait_for_service(service_timeout)
+        if self.__synchronous:
+            self._apply_planning_scene_diff = self.node.create_client(ApplyPlanningScene,
+                ns_join(ns, "apply_planning_scene") 
+            )
+            while not self._apply_planning_scene_diff.wait_for_service(timeout_sec=service_timeout):
+                self.node.get_logger().info("service not available, waing again...")
 
     def __submit(self, collision_object, attach=False):
         if self.__synchronous:
             diff_req = self.__make_planning_scene_diff_req(collision_object, attach)
-            self._apply_planning_scene_diff.call(diff_req)
+            self.future = self._apply_planning_scene_diff.call_async(diff_req)
+            rclpy.spin_until_future_complete(self.node, self.future)
         else:
             if attach:
                 self._pub_aco.publish(collision_object)
             else:
                 self._pub_co.publish(collision_object)
+
+    def gen_pose(self, x, y, z, frame_id='world'):
+        pose_ = PoseStamped()
+        pose_.pose.position.x = x
+        pose_.pose.position.y = y
+        pose_.pose.position.z = z
+        pose_.header.frame_id = frame_id
+        return pose_
 
     def add_object(self, collision_object):
         """Add an object to the planning scene"""
@@ -265,6 +277,7 @@ class PlanningSceneInterface(object):
 
     @staticmethod
     def __make_box(name, pose, size):
+        print(name, pose, size)
         co = CollisionObject()
         co.operation = CollisionObject.ADD
         co.id = name
@@ -360,6 +373,6 @@ class PlanningSceneInterface(object):
             scene.robot_state.attached_collision_objects = [collision_object]
         else:
             scene.world.collision_objects = [collision_object]
-        #planning_scene_diff_req = ApplyPlanningSceneRequest()
+        planning_scene_diff_req = ApplyPlanningScene.Request()
         planning_scene_diff_req.scene = scene
         return planning_scene_diff_req
