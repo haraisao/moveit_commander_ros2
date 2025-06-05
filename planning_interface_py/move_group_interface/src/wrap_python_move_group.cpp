@@ -470,7 +470,11 @@ public:
   bool executePython(const py_bindings_tools::ByteString& plan_str)
   {
     MoveGroupInterface::Plan plan;
+#ifdef ROS_HUMBLE
     py_bindings_tools::deserializeMsg(plan_str, plan.trajectory_);
+#else
+    py_bindings_tools::deserializeMsg(plan_str, plan.trajectory);
+#endif
     GILReleaser gr;
     return execute(plan) == moveit::core::MoveItErrorCode::SUCCESS;
   }
@@ -478,7 +482,11 @@ public:
   bool asyncExecutePython(const py_bindings_tools::ByteString& plan_str)
   {
     MoveGroupInterface::Plan plan;
+#ifdef ROS_HUMBLE
     py_bindings_tools::deserializeMsg(plan_str, plan.trajectory_);
+#else
+    py_bindings_tools::deserializeMsg(plan_str, plan.trajectory);
+#endif
     return asyncExecute(plan) == moveit::core::MoveItErrorCode::SUCCESS;
   }
 
@@ -490,8 +498,13 @@ public:
       GILReleaser gr;
       res = MoveGroupInterface::plan(plan);
     }
+#ifdef ROS_HUMBLE
     return bp::make_tuple(py_bindings_tools::serializeMsg(res), py_bindings_tools::serializeMsg(plan.trajectory_),
                           plan.planning_time_);
+#else
+    return bp::make_tuple(py_bindings_tools::serializeMsg(res), py_bindings_tools::serializeMsg(plan.trajectory),
+                          plan.planning_time);
+#endif
   }
 
   py_bindings_tools::ByteString constructMotionPlanRequestPython()
@@ -819,7 +832,9 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("compute_cartesian_path", &MoveGroupInterfaceWrapper::computeCartesianPathPython);
   move_group_interface_class.def("compute_cartesian_path",
                                  &MoveGroupInterfaceWrapper::computeCartesianPathConstrainedPython);
+#ifdef ROS_HUMBLE
   move_group_interface_class.def("set_support_surface_name", &MoveGroupInterfaceWrapper::setSupportSurfaceName);
+#endif
   move_group_interface_class.def("attach_object", &MoveGroupInterfaceWrapper::attachObjectPython);
   move_group_interface_class.def("detach_object", &MoveGroupInterfaceWrapper::detachObject);
   move_group_interface_class.def("retime_trajectory", &MoveGroupInterfaceWrapper::retimeTrajectory);
