@@ -807,17 +807,30 @@ class MoveGroupCommander(object):
         acceleration_scaling_factor=1.0,
         algorithm="time_optimal_trajectory_generation",
         resample_dt=0.1,
+        joint_limits=None,
     ):
         ser_ref_state_in = conversions.msg_to_string(ref_state_in)
         ser_traj_in = conversions.msg_to_string(traj_in)
-        ser_traj_out = self._g.retime_trajectory(
-            ser_ref_state_in,
-            ser_traj_in,
-            velocity_scaling_factor,
-            acceleration_scaling_factor,
-            algorithm,
-            resample_dt,
-        )
+        if joint_limits:
+            joint_limits_list = [ conversions.msg_to_string(x) for x in joint_limits]
+            ser_traj_out = self._g.retime_trajectory_with_limits(
+                ser_ref_state_in,
+                ser_traj_in,
+                joint_limits_list,
+                velocity_scaling_factor,
+                acceleration_scaling_factor,
+                algorithm,
+                resample_dt,
+            )
+        else:
+            ser_traj_out = self._g.retime_trajectory(
+                ser_ref_state_in,
+                ser_traj_in,
+                velocity_scaling_factor,
+                acceleration_scaling_factor,
+                algorithm,
+                resample_dt,
+            )
         #traj_out = RobotTrajectory()
         #traj_out.deserialize(ser_traj_out)
         traj_out = conversions.deserialize_message(ser_traj_out, RobotTrajectory)

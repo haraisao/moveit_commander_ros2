@@ -46,6 +46,7 @@
 #include <moveit/trajectory_processing/iterative_spline_parameterization.h>
 #endif
 #include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
+
 #include <tf2_eigen/tf2_eigen.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -56,6 +57,7 @@
 #include <eigenpy/eigenpy.hpp>
 #include <memory>
 #include <Python.h>
+#include <vector>
 
 /** @cond IGNORE */
 
@@ -650,6 +652,68 @@ public:
     }
   }
 
+  py_bindings_tools::ByteString retimeTrajectoryWithLimits(const py_bindings_tools::ByteString& ref_state_str,
+                                                 const py_bindings_tools::ByteString& traj_str,
+                                                 const bp::list& joint_limits,
+                                                 double velocity_scaling_factor, double acceleration_scaling_factor,
+                                                 const std::string& algorithm, double resample_dt)
+  {
+    int l = bp::len(joint_limits);
+    std::vector<moveit_msgs::msg::JointLimits> joint_limits_msg(l);
+    for (int i=0; i<l; ++i){
+      py_bindings_tools::deserializeMsg(py_bindings_tools::ByteString(joint_limits[i]), joint_limits_msg[i]);
+    }
+    
+    for(int i=0; i<joint_limits_msg.size(); i++){
+      auto v=joint_limits_msg[i];
+      std::cerr << i << ":" << v.joint_name << ":" << v.max_acceleration << std::endl; 
+    }
+
+    // Convert reference state message to object
+    moveit_msgs::msg::RobotState ref_state_msg;
+    py_bindings_tools::deserializeMsg(ref_state_str, ref_state_msg);
+    moveit::core::RobotState ref_state_obj(getRobotModel());
+
+
+    if (moveit::core::robotStateMsgToRobotState(ref_state_msg, ref_state_obj, true))
+    {
+      // Convert trajectory message to object
+      moveit_msgs::msg::RobotTrajectory traj_msg;
+      py_bindings_tools::deserializeMsg(traj_str, traj_msg);
+      bool algorithm_found = true;
+      {
+        GILReleaser gr;
+        robot_trajectory::RobotTrajectory traj_obj(getRobotModel(), getName());
+        traj_obj.setRobotTrajectoryMsg(ref_state_obj, traj_msg);
+
+       	if (algorithm == "time_optimal_trajectory_generation")
+        {
+          trajectory_processing::TimeOptimalTrajectoryGeneration time_param=trajectory_processing::TimeOptimalTrajectoryGeneration(0.1, resample_dt);
+          time_param.computeTimeStamps(traj_obj, joint_limits_msg, velocity_scaling_factor, acceleration_scaling_factor);
+          //time_param.computeTimeStamps(traj_obj, velocity_scaling_factor, acceleration_scaling_factor);
+        }
+        else
+        {
+          //ROS_ERROR_STREAM_NAMED("move_group_py", "Unknown time parameterization algorithm: " << algorithm);
+          fprintf(stderr, "move_group_py:Unknown time parameterization algorithm: %s\n", algorithm.c_str());
+          algorithm_found = false;
+          traj_msg = moveit_msgs::msg::RobotTrajectory();
+        }
+
+        if (algorithm_found)
+          // Convert the retimed trajectory back into a message
+          traj_obj.getRobotTrajectoryMsg(traj_msg);
+      }
+      return py_bindings_tools::serializeMsg(traj_msg);
+    }
+    else
+    {
+      //ROS_ERROR("Unable to convert RobotState message to RobotState instance.");
+      fprintf(stderr, "Unable to convert RobotState message to RobotState instance.\n");
+      return py_bindings_tools::ByteString("");
+    }
+  }
+
   Eigen::MatrixXd getJacobianMatrixPython(const bp::list& joint_values, const bp::object& reference_point = bp::object())
   {
     const std::vector<double> v = py_bindings_tools::doubleFromList(joint_values);
@@ -838,6 +902,7 @@ static void wrap_move_group_interface()
   move_group_interface_class.def("attach_object", &MoveGroupInterfaceWrapper::attachObjectPython);
   move_group_interface_class.def("detach_object", &MoveGroupInterfaceWrapper::detachObject);
   move_group_interface_class.def("retime_trajectory", &MoveGroupInterfaceWrapper::retimeTrajectory);
+  move_group_interface_class.def("retime_trajectory_with_limits", &MoveGroupInterfaceWrapper::retimeTrajectoryWithLimits);
   move_group_interface_class.def("get_named_targets", &MoveGroupInterfaceWrapper::getNamedTargetsPython);
   move_group_interface_class.def("get_named_target_values", &MoveGroupInterfaceWrapper::getNamedTargetValuesPython);
   move_group_interface_class.def("get_current_state_bounded", &MoveGroupInterfaceWrapper::getCurrentStateBoundedPython);
