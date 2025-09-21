@@ -658,22 +658,16 @@ public:
                                                  double velocity_scaling_factor, double acceleration_scaling_factor,
                                                  const std::string& algorithm, double resample_dt)
   {
-    int l = bp::len(joint_limits);
-    std::vector<moveit_msgs::msg::JointLimits> joint_limits_msg(l);
-    for (int i=0; i<l; ++i){
-      py_bindings_tools::deserializeMsg(py_bindings_tools::ByteString(joint_limits[i]), joint_limits_msg[i]);
-    }
-    
-    for(int i=0; i<joint_limits_msg.size(); i++){
-      auto v=joint_limits_msg[i];
-      std::cerr << i << ":" << v.joint_name << ":" << v.max_acceleration << std::endl; 
-    }
-
     // Convert reference state message to object
     moveit_msgs::msg::RobotState ref_state_msg;
     py_bindings_tools::deserializeMsg(ref_state_str, ref_state_msg);
     moveit::core::RobotState ref_state_obj(getRobotModel());
 
+    int l = bp::len(joint_limits);
+    std::vector<moveit_msgs::msg::JointLimits> joint_limits_msg(l);
+    for (int i=0; i<l; ++i){
+      py_bindings_tools::deserializeMsg(py_bindings_tools::ByteString(joint_limits[i]), joint_limits_msg[i]);
+    }
 
     if (moveit::core::robotStateMsgToRobotState(ref_state_msg, ref_state_obj, true))
     {
