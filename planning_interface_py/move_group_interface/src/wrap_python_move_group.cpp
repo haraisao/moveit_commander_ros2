@@ -652,6 +652,72 @@ public:
     }
   }
 
+#ifdef ROS_HUMBLE
+  py_bindings_tools::ByteString retimeTrajectoryWithLimits(const py_bindings_tools::ByteString& ref_state_str,
+                                                 const py_bindings_tools::ByteString& traj_str,
+                                                 const bp::list& joint_limits,
+                                                 double velocity_scaling_factor, double acceleration_scaling_factor,
+                                                 const std::string& algorithm, double resample_dt)
+  {
+    // Convert reference state message to object
+    moveit_msgs::msg::RobotState ref_state_msg;
+    py_bindings_tools::deserializeMsg(ref_state_str, ref_state_msg);
+    moveit::core::RobotState ref_state_obj(getRobotModel());
+
+    int l = bp::len(joint_limits);
+    std::vector<moveit_msgs::msg::JointLimits> joint_limits_msg(l);
+
+    std::unordered_map<std::string, double> velocity_limits(l);
+    std::unordered_map<std::string, double> acceleration_limits(l);
+
+    for (int i=0; i<l; ++i){
+      py_bindings_tools::deserializeMsg(py_bindings_tools::ByteString(joint_limits[i]), joint_limits_msg[i]);
+      if (joint_limits_msg[i].has_velocity_limits){
+        velocity_limits.emplace(joint_limits_msg[i].joint_name, joint_limits_msg[i].max_velocity*velocity_scaling_factor);
+      }
+      if (joint_limits_msg[i].has_acceleration_limits){
+        acceleration_limits.emplace(joint_limits_msg[i].joint_name, joint_limits_msg[i].max_acceleration*acceleration_scaling_factor);
+      }
+    }
+
+    if (moveit::core::robotStateMsgToRobotState(ref_state_msg, ref_state_obj, true))
+    {
+      // Convert trajectory message to object
+      moveit_msgs::msg::RobotTrajectory traj_msg;
+      py_bindings_tools::deserializeMsg(traj_str, traj_msg);
+      bool algorithm_found = true;
+      {
+        GILReleaser gr;
+        robot_trajectory::RobotTrajectory traj_obj(getRobotModel(), getName());
+        traj_obj.setRobotTrajectoryMsg(ref_state_obj, traj_msg);
+
+       	if (algorithm == "time_optimal_trajectory_generation")
+        {
+          trajectory_processing::TimeOptimalTrajectoryGeneration time_param=trajectory_processing::TimeOptimalTrajectoryGeneration(0.1, resample_dt);
+          time_param.computeTimeStamps(traj_obj, velocity_limits, acceleration_limits);
+        }
+        else
+        {
+          //ROS_ERROR_STREAM_NAMED("move_group_py", "Unknown time parameterization algorithm: " << algorithm);
+          fprintf(stderr, "move_group_py:Unknown time parameterization algorithm: %s\n", algorithm.c_str());
+          algorithm_found = false;
+          traj_msg = moveit_msgs::msg::RobotTrajectory();
+        }
+
+        if (algorithm_found)
+          // Convert the retimed trajectory back into a message
+          traj_obj.getRobotTrajectoryMsg(traj_msg);
+      }
+      return py_bindings_tools::serializeMsg(traj_msg);
+    }
+    else
+    {
+      //ROS_ERROR("Unable to convert RobotState message to RobotState instance.");
+      fprintf(stderr, "Unable to convert RobotState message to RobotState instance.\n");
+      return py_bindings_tools::ByteString("");
+    }
+  }
+#else
   py_bindings_tools::ByteString retimeTrajectoryWithLimits(const py_bindings_tools::ByteString& ref_state_str,
                                                  const py_bindings_tools::ByteString& traj_str,
                                                  const bp::list& joint_limits,
@@ -707,6 +773,7 @@ public:
       return py_bindings_tools::ByteString("");
     }
   }
+#endif
 
   Eigen::MatrixXd getJacobianMatrixPython(const bp::list& joint_values, const bp::object& reference_point = bp::object())
   {
